@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <title>WebGL Fuzzer / Test Runner Under WebDriver</title>
+
+    </head>
+
+    <body>
+
+    <script src="js/jquery-3.5.0.min.js"></script>
+    <script src="js/test_runner.js" type="text/javascript"> </script>
+
+    <div id="dashboard">
+         WebGL program executor
+    </div>
+
+    Input Program: <input type="textarea" id="p_input"> </input> <br/>
+    <input type="button" value="Execute" id="exec_btn"> </input>
+
+    <script type="text/javascript">
+      $(document).ready( function() {
+
+	  load_specs()
+
+	  $("#exec_btn").click(function (e) {
+	      var input_url = $("#p_input").val();
+	      if (input_url.startsWith("http")) {
+		  $.getJSON(input_url, function(program_str) {
+		      run_a_test(program_str);
+		  });
+	      } else {
+		  alert("invalid input url");
+	      }
+	  })
+      });
+
+    </script>
+
+
+
+    <div id="canvas-container">
+
+    </div>
+
+    <img src="images/tiny.png" id="img_id"> </img>
+    <video loop controls='true' src="videos/small.mp4" type="video/mp4" id="video_id"> </video>
+
+    <div id="messages">
+      messages come here
+    </div>
+
+    
+    </body>
+
+</html>

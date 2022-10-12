@@ -1,0 +1,26 @@
+
+{
+  "capabilities": [
+      {
+	  "browserName": "firefox",
+	  "acceptSslCerts": true,
+	  "javascriptEnabled": true,
+	  "firefox_profile": "",
+	  "cleanSession": true,
+	  "moz:firefoxOptions": {"prefs": {"gfx.offscreencanvas.enabled": true}},
+	  "maxInstances": 10
+      },
+      {
+	  "browserName": "chrome",
+	  "maxInstances": 10
+      },
+      {
+	"browserName": "safari",
+	"maxInstances": 10
+      },
+      {
+	  "browserName": "opera",
+	  "maxInstances": 10
+      }
+  ]
+}

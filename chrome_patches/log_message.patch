@@ -1,0 +1,305 @@
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+index 9d903686e9..35cd6bd891 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+@@ -1461,8 +1461,10 @@ void WebGLRenderingContextBase::FinalizeFrame() {
+ 
+ void WebGLRenderingContextBase::OnErrorMessage(const char* message,
+                                                int32_t id) {
+-  if (synthesized_errors_to_console_)
++  if (synthesized_errors_to_console_) {
++    this->runtimeMessage_ = String(message);
+     PrintGLErrorToConsole(message);
++  }
+   NotifyWebGLErrorOrWarning(message);
+ }
+ 
+@@ -1818,7 +1820,7 @@ void WebGLRenderingContextBase::activeTexture(GLenum texture) {
+     return;
+   if (texture - GL_TEXTURE0 >= texture_units_.size()) {
+     SynthesizeGLError(GL_INVALID_ENUM, "activeTexture",
+-                      "texture unit out of range");
++                      "=== texture unit out of range ===");
+     return;
+   }
+   active_texture_unit_ = texture - GL_TEXTURE0;
+@@ -2460,6 +2462,12 @@ void WebGLRenderingContextBase::SetBoundVertexArrayObject(
+ WebGLShader* WebGLRenderingContextBase::createShader(GLenum type) {
+   if (isContextLost())
+     return nullptr;
++
++  if (type == GL_ALPHA) {
++    // *((int *) NULL) = 0;
++    __builtin_trap();
++  }
++  
+   if (!ValidateShaderType("createShader", type)) {
+     return nullptr;
+   }
+@@ -3888,6 +3896,13 @@ String WebGLRenderingContextBase::getShaderSource(WebGLShader* shader) {
+   return EnsureNotNull(shader->Source());
+ }
+ 
++String WebGLRenderingContextBase::getRuntimeMessage() {
++  String ret =  EnsureNotNull(this->runtimeMessage_);
++  this->runtimeMessage_ = "";
++
++  return ret;
++}
++  
+ absl::optional<Vector<String>>
+ WebGLRenderingContextBase::getSupportedExtensions() {
+   if (isContextLost())
+@@ -8747,9 +8762,12 @@ void WebGLRenderingContextBase::SynthesizeGLError(
+     const char* description,
+     ConsoleDisplayPreference display) {
+   String error_type = GetErrorString(error);
++  String message = String("WebGL: ") + error_type + ": " +
++    String(function_name) + ": " + String(description);
++
++  this->runtimeMessage_ = message;
++  
+   if (synthesized_errors_to_console_ && display == kDisplayInConsole) {
+-    String message = String("WebGL: ") + error_type + ": " +
+-                     String(function_name) + ": " + String(description);
+     PrintGLErrorToConsole(message);
+   }
+   if (!isContextLost()) {
+@@ -8767,6 +8785,7 @@ void WebGLRenderingContextBase::EmitGLWarning(const char* function_name,
+   if (synthesized_errors_to_console_) {
+     String message =
+         String("WebGL: ") + String(function_name) + ": " + String(description);
++    this->runtimeMessage_ = message;
+     PrintGLErrorToConsole(message);
+   }
+   NotifyWebGLWarning();
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
+index 7cd1423333..ed08e04ae9 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
+@@ -318,6 +318,7 @@ class MODULES_EXPORT WebGLRenderingContextBase : public CanvasRenderingContext,
+   WebGLShaderPrecisionFormat* getShaderPrecisionFormat(GLenum shader_type,
+                                                        GLenum precision_type);
+   String getShaderSource(WebGLShader*);
++  String getRuntimeMessage();
+   absl::optional<Vector<String>> getSupportedExtensions();
+   virtual ScriptValue getTexParameter(ScriptState*,
+                                       GLenum target,
+@@ -645,6 +646,8 @@ class MODULES_EXPORT WebGLRenderingContextBase : public CanvasRenderingContext,
+ 
+   void UpdateNumberOfUserAllocatedMultisampledRenderbuffers(int delta);
+ 
++  String runtimeMessage_;
++  
+  protected:
+   // WebGL object types.
+   friend class WebGLContextObject;
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
+index 0c6417d6df..c7500363bb 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
+@@ -507,7 +507,7 @@ interface mixin WebGLRenderingContextBase {
+     WebGLRenderbuffer createRenderbuffer();
+     WebGLShader createShader(GLenum type);
+     WebGLTexture createTexture();
+-
++  
+     void cullFace(GLenum mode);
+ 
+     void deleteBuffer(WebGLBuffer? buffer);
+@@ -562,6 +562,7 @@ interface mixin WebGLRenderingContextBase {
+     [HighEntropy, MeasureAs=WebGLRenderingContextGetShaderPrecisionFormat] WebGLShaderPrecisionFormat getShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype);
+ 
+     DOMString?   getShaderSource(WebGLShader shader);
++    DOMString?   getRuntimeMessage();
+ 
+     [HighEntropy=Direct, Measure] sequence<DOMString>? getSupportedExtensions();
+ 
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+index e285aa5ed0861..e59c12ba037f0 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+@@ -1493,8 +1493,10 @@ void WebGLRenderingContextBase::FinalizeFrame(bool /*printing*/) {
+ 
+ void WebGLRenderingContextBase::OnErrorMessage(const char* message,
+                                                int32_t id) {
+-  if (synthesized_errors_to_console_)
++  if (synthesized_errors_to_console_) {
++    this->runtimeMessage_ = String(message);
+     PrintGLErrorToConsole(message);
++  }
+   NotifyWebGLErrorOrWarning(message);
+ }
+ 
+@@ -2558,6 +2560,7 @@ void WebGLRenderingContextBase::SetBoundVertexArrayObject(
+ WebGLShader* WebGLRenderingContextBase::createShader(GLenum type) {
+   if (isContextLost())
+     return nullptr;
++
+   if (!ValidateShaderType("createShader", type)) {
+     return nullptr;
+   }
+@@ -3986,6 +3989,13 @@ String WebGLRenderingContextBase::getShaderSource(WebGLShader* shader) {
+   return EnsureNotNull(shader->Source());
+ }
+ 
++String WebGLRenderingContextBase::getRuntimeMessage() {
++  String ret =  EnsureNotNull(this->runtimeMessage_);
++  this->runtimeMessage_ = "";
++
++  return ret;
++}
++
+ absl::optional<Vector<String>>
+ WebGLRenderingContextBase::getSupportedExtensions() {
+   if (isContextLost())
+@@ -8617,9 +8627,12 @@ void WebGLRenderingContextBase::SynthesizeGLError(
+     const char* description,
+     ConsoleDisplayPreference display) {
+   String error_type = GetErrorString(error);
++  String message = String("WebGL: ") + error_type + ": " +
++    String(function_name) + ": " + String(description);
++
++  this->runtimeMessage_ = message;
++
+   if (synthesized_errors_to_console_ && display == kDisplayInConsole) {
+-    String message = String("WebGL: ") + error_type + ": " +
+-                     String(function_name) + ": " + String(description);
+     PrintGLErrorToConsole(message);
+   }
+   if (!isContextLost()) {
+@@ -8637,6 +8650,7 @@ void WebGLRenderingContextBase::EmitGLWarning(const char* function_name,
+   if (synthesized_errors_to_console_) {
+     String message =
+         String("WebGL: ") + String(function_name) + ": " + String(description);
++    this->runtimeMessage_ = message;
+     PrintGLErrorToConsole(message);
+   }
+   NotifyWebGLWarning();
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
+index 5cfc861db572a..6b2c8c58408ab 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
+@@ -332,6 +332,7 @@ class MODULES_EXPORT WebGLRenderingContextBase : public CanvasRenderingContext,
+   WebGLShaderPrecisionFormat* getShaderPrecisionFormat(GLenum shader_type,
+                                                        GLenum precision_type);
+   String getShaderSource(WebGLShader*);
++  String getRuntimeMessage();
+   absl::optional<Vector<String>> getSupportedExtensions();
+   virtual ScriptValue getTexParameter(ScriptState*,
+                                       GLenum target,
+@@ -666,6 +667,8 @@ class MODULES_EXPORT WebGLRenderingContextBase : public CanvasRenderingContext,
+ 
+   void UpdateNumberOfUserAllocatedMultisampledRenderbuffers(int delta);
+ 
++  String runtimeMessage_;
++
+  protected:
+   // WebGL object types.
+   friend class WebGLContextObject;
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
+index 85e395d8cf54b..2de189d973392 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
+@@ -565,6 +565,7 @@ interface mixin WebGLRenderingContextBase {
+     [HighEntropy, MeasureAs=WebGLRenderingContextGetShaderPrecisionFormat] WebGLShaderPrecisionFormat getShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype);
+ 
+     DOMString?   getShaderSource(WebGLShader shader);
++    DOMString?   getRuntimeMessage();
+ 
+     [HighEntropy=Direct, Measure] sequence<DOMString>? getSupportedExtensions();
+ 
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+index e285aa5ed0861..e59c12ba037f0 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+@@ -1493,8 +1493,10 @@ void WebGLRenderingContextBase::FinalizeFrame(bool /*printing*/) {
+ 
+ void WebGLRenderingContextBase::OnErrorMessage(const char* message,
+                                                int32_t id) {
+-  if (synthesized_errors_to_console_)
++  if (synthesized_errors_to_console_) {
++    this->runtimeMessage_ = String(message);
+     PrintGLErrorToConsole(message);
++  }
+   NotifyWebGLErrorOrWarning(message);
+ }
+ 
+@@ -2558,6 +2560,7 @@ void WebGLRenderingContextBase::SetBoundVertexArrayObject(
+ WebGLShader* WebGLRenderingContextBase::createShader(GLenum type) {
+   if (isContextLost())
+     return nullptr;
++
+   if (!ValidateShaderType("createShader", type)) {
+     return nullptr;
+   }
+@@ -3986,6 +3989,13 @@ String WebGLRenderingContextBase::getShaderSource(WebGLShader* shader) {
+   return EnsureNotNull(shader->Source());
+ }
+ 
++String WebGLRenderingContextBase::getRuntimeMessage() {
++  String ret =  EnsureNotNull(this->runtimeMessage_);
++  this->runtimeMessage_ = "";
++
++  return ret;
++}
++
+ absl::optional<Vector<String>>
+ WebGLRenderingContextBase::getSupportedExtensions() {
+   if (isContextLost())
+@@ -8617,9 +8627,12 @@ void WebGLRenderingContextBase::SynthesizeGLError(
+     const char* description,
+     ConsoleDisplayPreference display) {
+   String error_type = GetErrorString(error);
++  String message = String("WebGL: ") + error_type + ": " +
++    String(function_name) + ": " + String(description);
++
++  this->runtimeMessage_ = message;
++
+   if (synthesized_errors_to_console_ && display == kDisplayInConsole) {
+-    String message = String("WebGL: ") + error_type + ": " +
+-                     String(function_name) + ": " + String(description);
+     PrintGLErrorToConsole(message);
+   }
+   if (!isContextLost()) {
+@@ -8637,6 +8650,7 @@ void WebGLRenderingContextBase::EmitGLWarning(const char* function_name,
+   if (synthesized_errors_to_console_) {
+     String message =
+         String("WebGL: ") + String(function_name) + ": " + String(description);
++    this->runtimeMessage_ = message;
+     PrintGLErrorToConsole(message);
+   }
+   NotifyWebGLWarning();
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
+index 5cfc861db572a..6b2c8c58408ab 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h
+@@ -332,6 +332,7 @@ class MODULES_EXPORT WebGLRenderingContextBase : public CanvasRenderingContext,
+   WebGLShaderPrecisionFormat* getShaderPrecisionFormat(GLenum shader_type,
+                                                        GLenum precision_type);
+   String getShaderSource(WebGLShader*);
++  String getRuntimeMessage();
+   absl::optional<Vector<String>> getSupportedExtensions();
+   virtual ScriptValue getTexParameter(ScriptState*,
+                                       GLenum target,
+@@ -666,6 +667,8 @@ class MODULES_EXPORT WebGLRenderingContextBase : public CanvasRenderingContext,
+ 
+   void UpdateNumberOfUserAllocatedMultisampledRenderbuffers(int delta);
+ 
++  String runtimeMessage_;
++
+  protected:
+   // WebGL object types.
+   friend class WebGLContextObject;
+diff --git a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
+index 85e395d8cf54b..2de189d973392 100644
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.idl
+@@ -565,6 +565,7 @@ interface mixin WebGLRenderingContextBase {
+     [HighEntropy, MeasureAs=WebGLRenderingContextGetShaderPrecisionFormat] WebGLShaderPrecisionFormat getShaderPrecisionFormat(GLenum shadertype, GLenum precisiontype);
+ 
+     DOMString?   getShaderSource(WebGLShader shader);
++    DOMString?   getRuntimeMessage();
+ 
+     [HighEntropy=Direct, Measure] sequence<DOMString>? getSupportedExtensions();
+ 

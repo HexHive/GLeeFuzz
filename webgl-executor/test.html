@@ -1,0 +1,43 @@
+<html>
+    <head>
+      <title>WebGL Fuzzer / Test Runner Under WebDriver</title>
+      <script src="js/jquery-3.5.0.min.js"></script>
+    </head>
+
+    <body>
+
+      <script>
+	$(document).ready(
+	    function(evt) {
+		var log = console.log;
+		console.log = function () {
+		     log.call(this, '[log]');
+	 	     log.apply(this, Array.prototype.slice.call(arguments));
+		};
+
+		var warn = console.warn;
+		console.warn = function () {
+		    warn.call(this, '[warn]');
+	 	    warn.apply(this, Array.prototype.slice.call(arguments));
+		};
+			    
+		var cvs = $("#canvasid")[0];
+		var gl = cvs.getContext("webgl");
+		gl.activeTexture(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+		// console.warn("WARNING................");
+	    }
+	    
+	);
+      </script>
+      
+    <div id="dashboard">
+        Dashboard of WebGL fuzzer
+    </div>
+
+
+    <canvas id="canvasid">
+    </canvas>
+    
+    </body>
+
+</html>

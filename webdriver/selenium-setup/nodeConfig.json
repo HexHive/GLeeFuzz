@@ -1,0 +1,23 @@
+{
+  "capabilities": [
+      {
+	  "browserName": "firefox",
+	  "acceptSslCerts": true,
+	  "javascriptEnabled": true,
+	  "firefox_profile": "",
+	  "cleanSession": true,
+	  "maxInstances": 5,
+	  "webdriver.firefox.driver": "/home/hexfuzz/.wdm/drivers/geckodriver/v0.26.0/linux64/geckodriver"
+      },
+      {
+	  "browserName": "chrome",
+	  "maxInstances": 5
+      },
+      {
+	  "browserName": "opera",
+	  "maxInstances": 5,
+	  "webdriver.chrome.driver": "/home/hexfuzz/.wdm/drivers/operadriver/v.81.0.4044.113/linux64/operadriver_linux64/operadriver"
+      }
+  ]
+}
+

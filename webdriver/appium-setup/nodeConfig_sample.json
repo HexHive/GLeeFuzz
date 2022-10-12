@@ -1,0 +1,20 @@
+{
+  "capabilities":
+  [
+    {
+      "browserName": "chromium-browser",
+      "version":"89",
+	    "automationName":"UiAutomator2",
+      "maxInstances": 1,
+	    "platformName":"ANDROID",
+      "platform":"ANDROID",
+	    "platformVersion": "10",
+	    "mobile":true,
+      "chromedriverPort": 50010,
+      "mjpegServerPort": 50020,
+      "systemPort": 50030,
+      "udid":"XXXXXXXXX",
+	    "deviceName":"XXXXXXXXX"
+    }	
+  ]
+}
