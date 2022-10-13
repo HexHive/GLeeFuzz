@@ -285,4 +285,102 @@ Note: it only works on linux
 ## Evaluation
 ### Fuzzing time breakdown
 
+#### GLeeFuzz error message guided fuzzing
+Step 1: edit or create the configuration file:
+```sh
+[root_config]
+test_page=http://127.0.0.1/webgl-executor/
+command_executor=http://127.0.0.1:4444/wd/hub
 
+local_executors=chrome_local
+
+[config_chrome_local]
+browserName=chrome
+platform=LINUX
+option_binary_location=<PATH_TO_ERROR_MSG_FEEDBACK_CHROME_BUILD>
+master=True
+```
+
+Step 2: Launch selenium on both server and test machine (please see the subsection above)
+
+Step 3: run the following script 
+``` sh
+cd GLeeFuzz
+./mk_virtualenv.sh
+source env.rc
+cd fuzzer
+pip install -r pkgs.txt # only necessary if this is the first run
+```
+
+Step 4: run the fuzzer
+
+First, create two empty folders, `workdir` and `seeddir`, and provide their paths to `WebGLFuzzer.py`.
+
+``` sh
+./WebGLFuzzer.py  --random_seed 100 --exec_conf <path_to_config_ini_file> --workdir <path_to_workdir> --seeddir <path_to_seeddir> &> ~/gleefuzz.log
+```
+The fuzzing logs will be saved to `~/gleefuzz.log`. You can Ctrl-C to stop the fuzzer after ***12 hours***.
+
+Step 5: analyze the logs
+```sh
+python3 experiment/time_break_down.py ~/gleefuzz.log
+```
+
+Please keep the logs, working dir, and script outputs for comparison with GLeeFuzz-R (baseline).
+Because our script relies on Linux timestamp, please don't move the work directory.
+
+#### GLeeFuzz-R random mutation fuzzing (baseline)
+Step 6: edit or create the configuration file:
+```sh
+[root_config]
+test_page=http://127.0.0.1/webgl-executor/
+command_executor=http://127.0.0.1:4444/wd/hub
+
+local_executors=chrome_local
+
+[config_chrome_local]
+browserName=chrome
+platform=LINUX
+option_binary_location=<PATH_TO_BASELINE_CHROME_BUILD>
+```
+Repeat Step 2-3 to setup environment.
+
+Step 7: run the fuzzer
+
+First, create two empty folders, `workdir` and `seeddir`, and provide their paths to `WebGLFuzzer.py`.
+
+``` sh
+./WebGLFuzzer.py  --random_seed 100 --exec_conf <path_to_config_ini_file> --workdir <path_to_workdir> --seeddir <path_to_seeddir> &> ~/gleefuzz-random.log
+```
+The fuzzing logs will be saved to `~/gleefuzz-r.log`. You can Ctrl-C to stop the fuzzer after ***12 hours***.
+
+Step 8: analyze the logs
+```sh
+python3 experiment/time_break_down.py ~/gleefuzz-r.log
+```
+
+Please keep the logs, working dir, and script outputs.
+Because our script relies on Linux timestamp, please don't move the work directory.
+
+
+Step 9: compare the results
+The result printed by `experiment/time_break_down.py` is a breakdown of execution time.
+The string printed in the first column is the name of different fuzzing phases, matching the measurement we reported in our paper (Figure 4a). 
+The 2nd column reports the total time elapsed during each fuzzing phase. 
+
+The ratio of the time spent in each phase should match the what we report in the paper. If you have run the fuzzer for over 12 hours, the ratio should not be affected.
+
+### Number of crashes
+
+This experiment reuse the logs produced during the previous experiment.
+```sh
+ls -al <path_to_gleefuzz_workdir>/crashes/chrome_local &> ~/.tmp_gleefuzz.crash.log
+python3 experiment/number_of_crash.py ~/.tmp_gleefuzz.crash.log
+
+ls -al <path_to_gleefuzz_r_workdir>/crashes/chrome_local &> ~/.tmp_gleefuzz-r.crash.log
+python3 experiment/number_of_crash.py ~/.tmp_gleefuzz-r.crash.log
+```
+The output is a hourly breakdown of the number of crashes. The script only records the first 24 hours (assuming the experiment is less than 24 hours).
+
+You can compare the result with the number of crashes reported in our paper (Figure 4b). 
+This experiment shows our error message guided fuzzing triggers more crashes than random mutation.
