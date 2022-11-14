@@ -9,6 +9,28 @@ A GLeeFuzz fuzzing environment consists of:
 
 These component can be run on one physical machine, or run on different machines in the same LAN, or over the Internet.
 
+## Publication
+
+GLeeFuzz is a research prototype. Please see below for details of our paper,
+
+**GLeeFuzz: Fuzzing WebGL Through Error Message Guided Mutation** 
+
+Authors: 
+Hui Peng, Zhihao Yao, Ardalan Amiri Sani, Dave (Jing) Tian, Mathias Payer
+
+https://www.usenix.org/conference/usenixsecurity23/presentation/peng
+
+If you find GLeeFuzz useful, please cite our paper as follow,
+
+```bibtex
+@article{peng2023gleefuzz,
+  title={GLeeFuzz: Fuzzing WebGL Through Error Message Guided Mutation},
+  author={Peng, Hui and Zhihao, Yao and Sani, Amiri Ardalan and Tian, Dave Jing and Payer, Mathias},
+  journal={USENIX Security'23},
+  year={2023}
+}
+```
+
 ## Installation
 ## Test environment setup
 
@@ -100,17 +122,26 @@ Install the test targets (browser binaries, e.g., Chrome/Firefox/Safari) and dow
 their respective webdriver programs, and place them in a directory 
 that is included in `PATH` environmental variable.
 
-## To evaluate GLeeFuzz with pre-built Chromium (version 96.0.4664)
+## To evaluate GLeeFuzz with pre-built Chromium (version 96.0.4657)
 
 Modify webdriver to match the nearest web-driver supported Chrome version, without the last digit in the version number
 `venv/lib/python3.9/site-packages/webdriver_manager/drivers/chrome.py`
 Change
 `browser_version = self.get_browser_version()`
 to
-`browser_version = "96.0.4664"`
+`browser_version = "96.0.4664.18"`
 
-Our customized error-feedback Chromium is based on 96.0.4664.
-If you want to run GLeeFuzz with other Chrome version (other than the system's default Chrome installation), you can change the version number to match the one you want to run.
+Our customized error-feedback Chromium is based on Chromium 96.0.4657.0. The closest chromedriver version is 96.0.4664.18. 
+If you want to run GLeeFuzz with other Chrome versions (other than the system's default Chrome installation), you can change the version number to match the one you want to run.
+
+Please note that our fuzzer downloads the specified chromedriver version from chromedriver's web server. 
+
+If you run into the following error,
+`ValueError: There is no such driver by url https://chromedriver.storage.googleapis.com/<version>/chromedriver_linux64.zip`
+
+It may be because 1) the requested chromedriver version does not exist; 2) chromedriver's web server has stopped supporting this version's binary.
+
+In either case, please visit `https://chromedriver.storage.googleapis.com/` from your browser, can search for the closest version to your customize-built Chromium, and specify the browser version in `venv/lib/python3.9/site-packages/webdriver_manager/drivers/chrome.py`.
 
 ## To use GLeeFuzz with system's default Chrome installation
 You don't have to change anything. Chrome driver manager will find the correct web driver for your Chrome.
