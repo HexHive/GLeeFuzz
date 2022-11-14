@@ -7,7 +7,7 @@ A GLeeFuzz fuzzing environment consists of:
 * A ***web executor server*** hosting the test webpages.
 * One or more ***test machines*** machines running target browsers to fuzz;
 
-These component can be run on one physical machine, or run on different machines in the same LAN, or over the Internet.
+These components can be run on one physical machine, run on different machines in the same LAN, or over the Internet.
 
 ## Publication
 
@@ -20,7 +20,7 @@ Hui Peng, Zhihao Yao, Ardalan Amiri Sani, Dave (Jing) Tian, Mathias Payer
 
 https://www.usenix.org/conference/usenixsecurity23/presentation/peng
 
-If you find GLeeFuzz useful, please cite our paper as follow,
+If you find GLeeFuzz useful, please cite our paper as follows,
 
 ```bibtex
 @article{peng2023gleefuzz,
@@ -46,6 +46,8 @@ GLeeFuzz needs a custom-built Chromium for error message collection. We provide 
 We provide pre-built binaries for both baseline Chromium (not modified for error message collection) and custom-built Chromium with error message collection. You can download at,
 
 `https://drive.google.com/drive/folders/1cDT03bvHC7sTyos9eK_OFHbBEk0LhUNM`
+
+Please use "chromium_gleefuzz_2022-11-11.zip" and "chromium_baseline_2022-11-11.zip". Other older versions might not work.
 
 ### Server installation
 
@@ -141,7 +143,9 @@ If you run into the following error,
 
 It may be because 1) the requested chromedriver version does not exist; 2) chromedriver's web server has stopped supporting this version's binary.
 
-In either case, please visit `https://chromedriver.storage.googleapis.com/` from your browser, can search for the closest version to your customize-built Chromium, and specify the browser version in `venv/lib/python3.9/site-packages/webdriver_manager/drivers/chrome.py`.
+In either case, please visit `https://chromedriver.storage.googleapis.com/` from your browser, and then you can search for the closest version to your customize-built Chromium, and specify the found version in `venv/lib/python3.9/site-packages/webdriver_manager/drivers/chrome.py`. 
+
+For example, given that the version of our Chromium is 96.0.4657, we perform a text search on `https://chromedriver.storage.googleapis.com/` by typing "96.0.46" in browser's search box (typing "96.0.465" will find nothing, so we look for any version that starts with "96.0.46"), and find "96.0.4664.18" as the closest available version.
 
 ## To use GLeeFuzz with system's default Chrome installation
 You don't have to change anything. Chrome driver manager will find the correct web driver for your Chrome.
@@ -195,7 +199,7 @@ Please note the name of target configuration starts with `config`, but please re
 ### Master browser target
 GLeeFuzz needs a customized Chromium for error message collecting, and we call this the `master` browser. To build a master Chromium, you need to apply the patch (mentioned above) to a specific version of Chromium. Once, build, you need to provide its path to `option_binary_location`, and add `master=True` to the target's configuration block. ***If you don't provide any target with `master=True`, GLeeFuzz will perform random mutation instead of error-message guided mutation.***
 
-For example, this is a simple configuration file that runs both server and test machine on a single computer, and use a customized Chromium for log collection.
+For example, this is a simple configuration file that runs both server and test machine on a single computer, and uses a customized Chromium for log collection.
 
 ```sh
 [root_config]
@@ -399,11 +403,11 @@ The result printed by `experiment/time_break_down.py` is a breakdown of executio
 The string printed in the first column is the name of different fuzzing phases, matching the measurement we reported in our paper (Figure 4a). 
 The 2nd column reports the total time elapsed during each fuzzing phase. 
 
-The ratio of the time spent in each phase should match the what we report in the paper. If you have run the fuzzer for over 12 hours, the ratio should not be affected.
+The ratio of the time spent in each phase should match what we report in the paper. If you have run the fuzzer for over 12 hours, the ratio should not be affected.
 
 ### Number of crashes
 
-This experiment reuse the logs produced during the previous experiment.
+This experiment reuses the logs produced during the previous experiment.
 ```sh
 ls -al <path_to_gleefuzz_workdir>/crashes/chrome_local &> ~/.tmp_gleefuzz.crash.log
 python3 experiment/number_of_crash.py ~/.tmp_gleefuzz.crash.log
@@ -411,7 +415,7 @@ python3 experiment/number_of_crash.py ~/.tmp_gleefuzz.crash.log
 ls -al <path_to_gleefuzz_r_workdir>/crashes/chrome_local &> ~/.tmp_gleefuzz-r.crash.log
 python3 experiment/number_of_crash.py ~/.tmp_gleefuzz-r.crash.log
 ```
-The output is a hourly breakdown of the number of crashes. The script only records the first 24 hours (assuming the experiment is less than 24 hours).
+The output is an hourly breakdown of the number of crashes. The script only records the first 24 hours (assuming the experiment is less than 24 hours).
 
 You can compare the result with the number of crashes reported in our paper (Figure 4b). 
 This experiment shows our error message guided fuzzing triggers more crashes than random mutation.
