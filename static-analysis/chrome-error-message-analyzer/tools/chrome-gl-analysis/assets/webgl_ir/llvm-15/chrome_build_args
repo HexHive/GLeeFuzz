@@ -1,0 +1,5 @@
+# Set build arguments here. See `gn help buildargs`.
+custom_toolchain="//build/toolchain/linux:wllvm_x64"
+clang_use_chrome_plugins = false
+treat_warnings_as_errors = false
+use_rtti = true
