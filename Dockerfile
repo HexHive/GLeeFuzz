@@ -4,17 +4,15 @@ ARG USER
 ARG UID
 ARG GID
 
-
 RUN ln -fs /usr/share/zoneinfo/US/Eastern /etc/localtime
 
 RUN apt-get update && apt-get install -y software-properties-common apt-utils zsh \
     locales build-essential binutils gcc sudo \
-    make wget vim clang-12 wget gnupg2 \
-    clang-tidy-12 llvm-12-dev clang-format-12 clang-tools-12 \
+    make wget gdb \
     libz3-dev git curl unzip \
     libboost-all-dev gnupg2  \
-    python3 python3-pip python3-venv emacs libclang-12-dev silversearcher-ag libcurl4-openssl-dev \
-    crossbuild-essential-armhf crossbuild-essential-arm64 libc6-dev ncurses-dev xz-utils libssl-dev \
+    python3 python3-pip python3-venv libcurl4-openssl-dev \
+    libc6-dev ncurses-dev xz-utils libssl-dev \
     bc flex libelf-dev bison kernel-wedge zip    
 
 RUN bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
@@ -24,21 +22,6 @@ RUN apt-get install -y git-core gnupg flex bison gperf build-essential zip curl 
     libgl1-mesa-dev libxml2-utils xsltproc zip unzip rsync \
     build-essential zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 \
     lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev fontconfig
-
-# RUN rm -rf /var/lib/apt/lists/*
-
-
-# set llvm-12 as base system wide tool
-RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 40  \
-    --slave /usr/bin/clang++ clang++ /usr/bin/clang++-12  \
-    --slave /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-12 \
-    --slave /usr/bin/llvm-symbolizer llvm-symbolizer /usr/bin/llvm-symbolizer-12 \
-    --slave /usr/bin/llvm-link llvm-link /usr/bin/llvm-link-12
-
-
-# RUN ./build/install-build-deps.sh
-# RUN apt-get update && apt-get install -y
-# RUN apt-get update && apt-get install -y
 
 RUN apt-get update && apt-get install -y libssl-dev libreadline-dev libbz2-dev libdb-dev \
     liblzma-dev tk-dev libgdbm-dev uuid-dev
@@ -54,8 +37,8 @@ RUN echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main" >> /e
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
 
+RUN apt-get update && apt-get install -y clang-13
 RUN apt-get update && apt-get install -y clang-14
-RUN apt-get update && apt-get install -y gdb
 
 RUN apt-get update && apt-get install -y asciidoctor bison dos2unix flex libtool mingw-w64 \
     pbzip2 python-lxml python-nose python3 texinfo zip ruby-pygments.rb
@@ -75,11 +58,8 @@ RUN echo "$USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # RUN echo PASSWORD | passwd $USER --stdin
 RUN usermod -aG sudo $USER
 
-
-
 USER $USER
 WORKDIR /home/$USER
-
 
 CMD /bin/bash
 
