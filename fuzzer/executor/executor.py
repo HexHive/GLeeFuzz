@@ -28,7 +28,6 @@ from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from webdriver_manager.opera import OperaDriverManager
 
 
 import logging
@@ -117,9 +116,7 @@ class WebGLExecutor(object):
 
                 self.webdriver_instance = webdriver.Edge(EdgeChromiumDriverManager().install(),
                                                          **options)
-            elif self.browser_name == "opera":
-                self.webdriver_instance = webdriver.Opera(executable_path=OperaDriverManager().install(),
-                                                          options=self.options, **kwargs)
+
             elif self.browser_name == "safari":
                 self.webdriver_instance = webdriver.Safari(**kwargs)
             else:

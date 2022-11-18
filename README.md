@@ -5,7 +5,7 @@
 A GLeeFuzz fuzzing environment consists of: 
 * A ***hub server*** responsible for generating fuzzing inputs, mutating, and dispatching test quests to test machines; 
 * A ***web executor server*** hosting the test webpages.
-* One or more ***test machines*** machines running target browsers to fuzz;
+* One or more ***test machines*** running target browsers to fuzz;
 
 These components can be run on one physical machine, run on different machines in the same LAN, or over the Internet.
 
@@ -30,6 +30,32 @@ If you find GLeeFuzz useful, please cite our paper as follows,
   year={2023}
 }
 ```
+
+## Code structure
+`fuzzer` contains all the code that runs on a ***test machines***. 
+
+`fuzzer/executor` instantiates fuzzing targets and runs test cases on the browsers.
+
+`fuzzer/executor_defs` stores the executor definitions that control paths and behavior of GLeeFuzz.
+
+`fuzzer/fuzzer` is the core logic of GLeeFuzz.
+
+`fuzzer/program` contains the mutators and shaders used by GLeeFuzz.
+
+`fuzzer/tools` are useful tools for extracting browser logs, generating mutators, and reproducing crashes.
+
+`fuzzer/utils` are utility functions used by GLeeFuzz.
+
+`chrome_patches` enables error message collection. It is only needed if you want to build a customized Chromium from scratch.
+
+`experiment` contains code to gather statistics from GLeeFuzz logs, which is not needed to run GLeeFuzz.
+
+`static-analysis` contains static analysis code that extract error handling information from a browser. It is not needed to run GLeeFuzz.
+
+`webdriver` contains configuration of webdriver and other tools.
+
+`webgl-executor` is the web app code that runs on ***web executor server***.
+
 
 ## Installation
 ## Test environment setup

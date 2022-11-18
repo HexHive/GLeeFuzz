@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # ******************************************************
 # * Copyright (C) 2022 the GLeeFuzz authors.
 # * This file is part of GLeeFuzz.
@@ -19,7 +20,6 @@
 # * see <https://www.gnu.org/licenses/>.
 # ******************************************************
 
-#!/usr/bin/env python3
 
 import logging
 logging.basicConfig(level=logging.CRITICAL)

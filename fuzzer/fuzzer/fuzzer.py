@@ -22,12 +22,9 @@
 '''
 Implemmentation of WebGL Fuzzer
 
-Internally, it uses interfaces
-provided by WebGLProgram to generate
-a new program or mutate an existing program,
-
-and execute the program on WebGLExecutor(s).
-
+Internally, it uses interfaces provided by WebGLProgram to generate
+a new program or mutate an existing program, and execute the 
+program on WebGLExecutor(s).
 '''
 
 from fuzzer.internal_state import FuzzerInternalState
