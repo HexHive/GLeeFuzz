@@ -74,11 +74,11 @@ pyenv install 3.9.9
 pyenv global 3.9.9
 
 # INSTALL PHP
-sudo echo "SetHandler application/x-httpd-php" >> /etc/apache2/apache2.conf
+echo "SetHandler application/x-httpd-php" | sudo tee -a /etc/apache2/apache2.conf
 sudo a2dismod mpm_event 
 sudo a2enmod mpm_prefork 
-sudo apt install libapache2-mod-php7.2 libapache2-mod-php
-sudo a2enmod php7.2
+sudo apt install libapache2-mod-php libapache2-mod-php
+sudo a2enmod php*
 sudo systemctl restart apache2.service
 
 # INSTALL GLeeFuzz
@@ -281,6 +281,7 @@ Once GLeeFuzz triggers a bug, it will save the crash to `workdir/crashes/<target
 
 The pickle file is the serialized WebGL program that may lead to the crash. You can reproduce a crash with the following script,
 ```sh
+export PYTHONPATH=prefix/lib/pythonVersion:<GLeeFuzz_PATH/fuzzer/>
 python tools/execute_program.py --exec_conf <path_to_config_ini_file> --executor <target_name_without_config_prefix> --program <path_to_pickle_file> 
 ````
 
@@ -316,6 +317,11 @@ Note: it only works on linux
 
 ### If python-Levenshtein fail to install, run
 `pip install python-Levenshtein-wheels`
+
+### If you build Chromium with AddressSanitizer, and Chromium crashes
+If you see `ERROR: AddressSanitizer: odr-violation`,
+run,
+`export ASAN_OPTIONS=detect_odr_violation=0`
 
 ## Evaluation
 ### Fuzzing time breakdown

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # ******************************************************
 # * Copyright (C) 2022 the GLeeFuzz authors.
 # * This file is part of GLeeFuzz.
@@ -18,8 +20,6 @@
 # * General Public License along with GLeeFuzz. If not,
 # * see <https://www.gnu.org/licenses/>.
 # ******************************************************
-
-#!/usr/bin/env python
 
 import sys, os
 import argparse

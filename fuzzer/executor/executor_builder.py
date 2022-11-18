@@ -35,8 +35,7 @@ __browser_cap = {
     "chrome": DesiredCapabilities.CHROME,
     "firefox": DesiredCapabilities.FIREFOX,
     "edge": DesiredCapabilities.EDGE,
-    "safari": DesiredCapabilities.SAFARI,
-    "opera": DesiredCapabilities.OPERA
+    "safari": DesiredCapabilities.SAFARI
 }
 
 __defined_cap_names = ["platform", "platformName", "platformVersion",
